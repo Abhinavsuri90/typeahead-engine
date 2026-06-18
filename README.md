@@ -230,40 +230,41 @@ Shows how many prefixes each node is responsible for. Proves consistent hashing 
 curl "http://localhost:3000/ring/distribution"
 ```
 
-### GET /batch/stats
+### GET /analytics
 
-Proves write reduction. Run after firing several POST /search requests.
+Unified dashboard of all system metrics including cache hit rate, latency (p50, p95, p99), and batch write reduction stats.
 
 ```bash
-curl "http://localhost:3000/batch/stats"
+curl "http://localhost:3000/analytics"
 ```
 
 Response:
 ```json
 {
-  "bufferSize": 0,
-  "totalSearchesReceived": 200,
-  "totalDbWrites": 2,
-  "dbWritesSaved": 198,
-  "avgBatchSize": 100,
-  "savingsPercentage": "99.0%"
+  "cache": {
+    "hitRate": "95.5%",
+    "totalHits": 1500,
+    "totalMisses": 70,
+    "nodeBreakdown": [...]
+  },
+  "latency": {
+    "p50ms": 0.03,
+    "p95ms": 0.12,
+    "p99ms": 0.45,
+    "totalRequests": 1570
+  },
+  "batch": {
+    "writesReceived": 200,
+    "dbWritesActual": 2,
+    "writesSaved": 198,
+    "savingsPercentage": "99.0%"
+  },
+  "server": {
+    "uptimeSeconds": 3600,
+    "nodeCount": 5,
+    "port": 3000
+  }
 }
-```
-
-### GET /latency/stats
-
-Returns p50, p95, and p99 latency across all requests.
-
-```bash
-curl "http://localhost:3000/latency/stats"
-```
-
-### GET /analytics
-
-Unified dashboard of all system metrics.
-
-```bash
-curl "http://localhost:3000/analytics"
 ```
 
 ### GET /health
@@ -276,7 +277,7 @@ curl "http://localhost:3000/health"
 
 ## Running the Demo
 
-This sequence fully tests all assignment requirements and proves system stability, generating a final performance report dynamically based on real data.
+This sequence fully tests all system requirements and proves system stability, generating a final performance report dynamically based on real data.
 
 ### Step 1 — Run Automated Testing Suite
 
