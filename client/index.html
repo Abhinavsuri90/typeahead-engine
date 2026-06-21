@@ -184,6 +184,57 @@
                 dropdown.style.display = 'none';
             }
         });
+
+        // 1000 User Load Test Function
+        window.run1000UserTest = async function() {
+            messageDiv.textContent = "Running 1000 concurrent user load test... Please wait.";
+            const start = performance.now();
+            let totalRequests = 0;
+            const concurrentUsers = 1000;
+            
+            // Generate 1000 parallel user sessions
+            const users = Array.from({length: concurrentUsers}).map((_, i) => async () => {
+                try {
+                    // Each user does 3 suggestions and 1 search submission (simulating a typing flow)
+                    await fetch(`${API_BASE}/suggest?q=ip`);
+                    await fetch(`${API_BASE}/suggest?q=iph`);
+                    await fetch(`${API_BASE}/suggest?q=iphon`);
+                    await fetch(`${API_BASE}/search`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ query: 'iphone 15 pro ' + Math.random() })
+                    });
+                    totalRequests += 4;
+                } catch (e) {
+                    console.error("User request failed:", e);
+                }
+            });
+
+            // Execute all 1000 users concurrently
+            await Promise.all(users.map(u => u()));
+            
+            const end = performance.now();
+            const durationSec = (end - start) / 1000;
+            const throughput = Math.round(totalRequests / durationSec);
+            
+            // Fetch final analytics to get p95, cache hit rate, and db write reduction
+            const analyticsRes = await fetch(`${API_BASE}/analytics`);
+            const analytics = await analyticsRes.json();
+            
+            const results = {
+                concurrentUsers: concurrentUsers,
+                totalRequestsSent: totalRequests,
+                durationSeconds: durationSec.toFixed(2),
+                throughputPerSecond: throughput,
+                cacheHitRate: analytics.cache.hitRate,
+                p95Latency: analytics.latency.p95ms + "ms",
+                batchWritesSaved: analytics.batch.savingsPercentage
+            };
+            
+            console.log("LOAD TEST RESULTS:", JSON.stringify(results, null, 2));
+            messageDiv.textContent = `Test Complete! Throughput: ${throughput} req/s. Check console for full JSON.`;
+            return results;
+        };
     </script>
 </body>
 </html>
