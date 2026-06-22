@@ -1,6 +1,7 @@
 import fetch from 'node-fetch';
 
-const API_BASE = 'http://localhost:3000';
+const PORT = process.env.PORT || '3000';
+const API_BASE = `http://localhost:${PORT}`;
 
 async function runTest(name: string, fn: () => Promise<boolean | string>): Promise<boolean> {
   try {
@@ -85,15 +86,16 @@ async function runCycle(cycleNum: number): Promise<number> {
     return 'nodeId' in j && 'hit' in j;
   })) ? 1 : 0;
 
+  const nodeCount = parseInt(process.env.NODE_COUNT || '5', 10);
   passedCount += (await runTest("GET /cache/stats", async () => {
     let res = await fetch(`${API_BASE}/cache/stats`);
     if (!res.ok) {
       const analyticsRes = await fetch(`${API_BASE}/analytics`);
       const a = await analyticsRes.json() as any;
-      return Array.isArray(a.cache.nodeBreakdown) && a.cache.nodeBreakdown.length === 5;
+      return Array.isArray(a.cache.nodeBreakdown) && a.cache.nodeBreakdown.length === nodeCount;
     }
     const j = await res.json() as any;
-    return (j.nodes || j).length === 5;
+    return (j.nodes || j).length === nodeCount;
   })) ? 1 : 0;
 
   passedCount += (await runTest("GET /ring/distribution", async () => {

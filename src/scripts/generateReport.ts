@@ -3,7 +3,8 @@ import fetch from 'node-fetch';
 import fs from 'fs';
 import path from 'path';
 
-const BASE = 'http://localhost:3000';
+const PORT = process.env.PORT || '3000';
+const BASE = `http://localhost:${PORT}`;
 
 async function get(p: string): Promise<any> {
   const res = await fetch(`${BASE}${p}`);
@@ -101,7 +102,7 @@ This report was generated automatically at ${new Date().toISOString()}.
 - **Hit Rate:** ${analytics.cache.hitRate}
 - **Total Hits:** ${analytics.cache.totalHits}
 - **Total Misses:** ${analytics.cache.totalMisses}
-- **Nodes Operating:** 5
+- **Nodes Operating:** ${process.env.NODE_COUNT || '5'}
 
 ## Batch Write Performance
 - **Searches Received:** ${analytics.batch.writesReceived}

@@ -13,7 +13,8 @@ export async function getTrendingSuggestions(prefix: string): Promise<TrendingRe
   }
 
   const results = await dbGetTrendingSuggestions(sanitized);
-  cacheManager.set(sanitized, results, 60000, 'trending');
+  const trendingTtl = parseInt(process.env.TRENDING_CACHE_TTL_MS || '60000', 10);
+  cacheManager.set(sanitized, results, trendingTtl, 'trending');
   
   return results;
 }
@@ -27,7 +28,8 @@ export async function getTrending(windowHours: number = 168): Promise<TrendingRe
   }
 
   const results = await dbGetTrending(windowHours);
-  cacheManager.set(cacheKey, results, 60000, 'trending');
+  const trendingTtl = parseInt(process.env.TRENDING_CACHE_TTL_MS || '60000', 10);
+  cacheManager.set(cacheKey, results, trendingTtl, 'trending');
   
   return results;
 }

@@ -2,7 +2,8 @@ import pool from '../db/pool';
 import fetch from 'node-fetch';
 import fs from 'fs';
 
-const BASE = 'http://localhost:3000';
+const PORT = process.env.PORT || '3000';
+const BASE = `http://localhost:${PORT}`;
 const GREEN = '\x1b[32m';
 const RED = '\x1b[31m';
 const CYAN = '\x1b[36m';
@@ -59,9 +60,9 @@ async function checkServer(): Promise<void> {
   try {
     const res = await fetch(`${BASE}/health`);
     if (!res.ok) throw new Error('not ok');
-    console.log(GREEN + 'Server is running on port 3000' + RESET);
+    console.log(GREEN + `Server is running on port ${PORT}` + RESET);
   } catch {
-    console.log(RED + '\nERROR: Server is not running on port 3000' + RESET);
+    console.log(RED + `\nERROR: Server is not running on port ${PORT}` + RESET);
     console.log(YELLOW + 'Start it first: npm run dev\n' + RESET);
     process.exit(1);
   }
@@ -183,10 +184,11 @@ async function runCycle(cycleNum: number): Promise<{
       const a = await get('/analytics');
       if (a.status === 200) r = { status: 200, body: { nodes: a.body.cache.nodeBreakdown } };
     }
+    const nodeCount = parseInt(process.env.NODE_COUNT || '5', 10);
     const { status, body } = r;
-    if (status === 200 && Array.isArray(body.nodes) && body.nodes.length === 5) {
-      pass('GET /cache/stats', '(5 nodes)'); cyclePass++;
-    } else { fail('GET /cache/stats', `expected 5 nodes`); cycleFail++; }
+    if (status === 200 && Array.isArray(body.nodes) && body.nodes.length === nodeCount) {
+      pass('GET /cache/stats', `(${nodeCount} nodes)`); cyclePass++;
+    } else { fail('GET /cache/stats', `expected ${nodeCount} nodes`); cycleFail++; }
   } catch (e: any) { fail('GET /cache/stats', e.message); cycleFail++; }
 
   try {

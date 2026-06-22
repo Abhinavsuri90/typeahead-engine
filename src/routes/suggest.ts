@@ -7,8 +7,8 @@ import { cacheManager } from '../dependencies';
 const router = Router();
 
 export const suggestLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 10000,
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10),
+  max: parseInt(process.env.RATE_LIMIT_MAX || '10000', 10),
   message: { error: "Too many requests, slow down" },
   standardHeaders: true,
   legacyHeaders: false,

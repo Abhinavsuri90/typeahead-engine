@@ -16,6 +16,7 @@ import path from 'path';
 
 const app = express();
 const PORT = parseInt(process.env.PORT as string, 10) || 3000;
+const NODE_COUNT = parseInt(process.env.NODE_COUNT as string, 10) || 5;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../client')));
@@ -78,7 +79,7 @@ app.get('/analytics', (req: Request, res: Response) => {
     },
     server: {
       uptimeSeconds: Math.floor(process.uptime()),
-      nodeCount: 5,
+      nodeCount: NODE_COUNT,
       port: PORT
     }
   });
@@ -273,10 +274,10 @@ app.get('/validate-run', async (req: Request, res: Response) => {
           r = { status: 200, body: { nodes: a.body.cache.nodeBreakdown } };
       }
       const { status, body } = r;
-      if (status === 200 && Array.isArray(body.nodes) && body.nodes.length === 5) {
-        reportPass(`GET /cache/stats`, '5 nodes');
+      if (status === 200 && Array.isArray(body.nodes) && body.nodes.length === NODE_COUNT) {
+        reportPass(`GET /cache/stats`, `${NODE_COUNT} nodes`);
       } else {
-        reportBad(`GET /cache/stats`, `expected 5 nodes`);
+        reportBad(`GET /cache/stats`, `expected ${NODE_COUNT} nodes`);
       }
     } catch (e: any) {
       reportBad(`GET /cache/stats`, e.message);
@@ -497,7 +498,8 @@ async function warmCache(): Promise<void> {
   for (const prefix of topPrefixes) {
     const results = await getSuggestions(prefix);
     if (results.length > 0) {
-      cacheManager.set(prefix, results, 300000, 'basic');
+      const basicTtl = parseInt(process.env.BASIC_CACHE_TTL_MS || '300000', 10);
+      cacheManager.set(prefix, results, basicTtl, 'basic');
       // Primer for the cache hit rate stats
       cacheManager.get(prefix, 'basic');
       logger.info({ event: "cache_warmed", prefix, resultCount: results.length });
@@ -589,7 +591,7 @@ async function startServer() {
     logger.info({
       event: "server_start",
       port: Number(PORT),
-      nodeCount: 5
+      nodeCount: NODE_COUNT
     });
   });
 

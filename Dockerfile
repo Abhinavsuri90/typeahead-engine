@@ -34,8 +34,10 @@ COPY --from=builder /usr/src/app/dist ./dist
 # Copy the frontend UI so it can be served
 COPY --from=builder /usr/src/app/client ./client
 
-# Expose the port the app runs on
-EXPOSE 3000
+# Expose the port the app runs on (configurable via build arg)
+ARG PORT=3000
+ENV PORT=${PORT}
+EXPOSE ${PORT}
 
 # Start the application
 CMD ["npm", "start"]

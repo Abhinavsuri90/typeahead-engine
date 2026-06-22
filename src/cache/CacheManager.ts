@@ -10,13 +10,14 @@ export class CacheManager {
   constructor() {
     this.hashRing = new ConsistentHash();
     
-    for (let i = 1; i <= 5; i++) {
+    const nodeCount = parseInt(process.env.NODE_COUNT || '5', 10);
+    for (let i = 1; i <= nodeCount; i++) {
       const nodeId = `node-${i}`;
       this.nodes.set(nodeId, new CacheNode<SuggestionResult[] | TrendingResult[]>(nodeId));
       this.hashRing.addNode(nodeId);
     }
     
-    logger.info({ event: "cache_manager_init", nodeCount: 5 });
+    logger.info({ event: "cache_manager_init", nodeCount });
   }
 
   public get(prefix: string, mode: 'basic' | 'trending'): SuggestionResult[] | TrendingResult[] | null {
